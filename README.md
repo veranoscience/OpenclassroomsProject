@@ -23,7 +23,7 @@ Ce dépôt contient l’ensemble du travail réalisé en tant que **Consultant D
 - [Auteur](#-auteur)
 
 ---
-
+<a id="-contexte"></a>
 ## Contexte
 
 TechNova Partners constate un **taux de démission plus élevé que d’habitude**.  
@@ -41,7 +41,7 @@ En parallèle, Manager Data Scientist, accompagne la démarche afin de structure
 Ce projet s’inscrit donc dans un **scénario professionnel complet**, allant de la compréhension métier à la restitution de recommandations.
 
 ---
-
+<a id="-objectifs"></a>
 ## Objectifs
 
 Le projet vise à :
@@ -53,7 +53,7 @@ Le projet vise à :
 - **Fournir des livrables clairs** : notebooks, scripts, environnement reproductible et support de présentation.
 
 ---
-
+<a id="-jeux-de-données"></a>
 ##  Jeux de données
 
 Trois sources principales sont mises à disposition :
@@ -71,12 +71,12 @@ Trois sources principales sont mises à disposition :
 3. **Extrait du sondage annuel employés**  
    - Questions de bien-être au travail  
    - Perception de la charge, du management, de l’équilibre vie pro/vie perso  
-   - + une **variable cible** indiquant si l’employé a quitté l’entreprise (attrition = 1/0)
+   - Une **variable cible** indiquant si l’employé a quitté l’entreprise (attrition = 1/0)
 
 Ces différentes sources sont **fusionnées et préparées** pour construire un dataset exploitable pour la modélisation.
 
 ---
-
+<a id="-approche"></a>
 ## Approche
 
 L’analyse suit les grandes étapes suivantes :
@@ -114,9 +114,10 @@ L’analyse suit les grandes étapes suivantes :
    - Recommandations opérationnelles et pistes d’actions.
 
 ---
-
+<a id="-structure-du-dépôt"></a>
 ## Structure du dépôt
 
+```text
 .
 ├── data/
 │   ├── raw/               # Fichiers bruts : SIRH, performance, sondage
@@ -130,9 +131,11 @@ L’analyse suit les grandes étapes suivantes :
 ├── pyproject.toml         # Configuration de l'environnement & dépendances
 └── README.md
 
-**Mise en place du modèle**
+```
+<a id="-mise-en-place-du-modèle"></a>
+## Mise en place du modèle
 
-1. Chargement et préparation
+1. **Chargement et préparation**
 
 - Import des trois extraits (SIRH, performance, sondage),
 
@@ -140,7 +143,7 @@ L’analyse suit les grandes étapes suivantes :
 
 - Construction de la variable cible (attrition).
 
-2. Prétraitement
+2. **Prétraitement**
 
 - Gestion des valeurs manquantes,
 
@@ -150,7 +153,7 @@ L’analyse suit les grandes étapes suivantes :
 
 - Séparation train/test.
 
-3. Modélisation
+3. **Modélisation**
 
 Plusieurs modèles de classification sont testés :
 
@@ -177,9 +180,8 @@ Plusieurs modèles de classification sont testés :
 Le modèle final retenu est celui offrant **le meilleur compromis entre performance et interprétabilité** pour les RH.
 
 ---
-
-
-**Interprétabilité avec SHAP**
+<a id="-interprétabilité-avec-shap"></a>
+## Interprétabilité avec SHAP
 
 L’interprétation du modèle est réalisée avec SHAP :
 
@@ -192,8 +194,8 @@ L’interprétation du modèle est réalisée avec SHAP :
 Ces analyses sont détaillées dans les notebooks de modélisation et illustrées par des graphiques SHAP (summary plots, force plots…)
 
 ---
-
-## **Installation**
+<a id="-installation"></a>
+## Installation
 
 **Prérequis**
 
@@ -203,16 +205,19 @@ Ces analyses sont détaillées dans les notebooks de modélisation et illustrée
 
 - pip 
 
-### Étapes d’installation
+## Étapes d’installation
 
-1. Cloner le dépôt 
+1. **Cloner le dépôt**
+
 git clone https://github.com/veranoscience/OpenclassroomsProject.git
+
 cd OpenclassroomsProject
 
-2. Créer un environnement virtuel
+2. **Créer un environnement virtuel**
+
 python -m venv .venv
 
-3. Activer l’environnement virtuel
+3. **Activer l’environnement virtuel**
 
 - Sur Windows :
 
@@ -223,14 +228,13 @@ python -m venv .venv
 
 source .venv/bin/activate
 
-4. Installer les dépendances
+4. **Installer les dépendances**
 
 pip install .
 
 ---
-
-
-### Utilisation
+<a id="-utilisation"></a>
+## Utilisation
 
 1. Lancer les notebooks
 
@@ -247,8 +251,8 @@ Puis ouvrir:
 - notebooks/03_modelisation.ipynb pour la modélisation et SHAP
 
 ---
-
-### Livrables
+<a id="-livrables"></a>
+## Livrables
 
 Le projet fournit :
 
@@ -269,7 +273,7 @@ Le projet fournit :
 **Un support de présentation (PDF)**
 
 ---
-
-### Auteur
+<a id="-auteur"></a>
+## Auteur
 
 Kseniia Dautel
