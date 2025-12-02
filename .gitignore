@@ -13,12 +13,10 @@ wheels/
 .ipynb_checkpoints/
 *.nbconvert.ipynb
 
-# Données
-data/raw/*
-!data/raw/.gitkeep
-data/processed/*
-!data/processed/.gitkeep
-
 # macOS / VS Code
 .DS_Store
 .vscode/
+
+# Données : cacher SEULEMENT les brutes
+data/raw/*
+!data/raw/.gitkeep
