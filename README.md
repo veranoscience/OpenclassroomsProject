@@ -17,9 +17,9 @@ Ce dépôt contient l’ensemble du travail réalisé en tant que **Consultant D
 - [Structure du dépôt](#️-structure-du-dépôt)
 - [Mise en place du modèle](#-mise-en-place-du-modèle)
 - [Interprétabilité avec SHAP](#-interprétabilité-avec-shap)
-- [⚙️ Installation](#️-installation)
-- [▶️ Utilisation](#️-utilisation)
-- [🧾 Livrables](#-livrables)
+- [Installation](#️-installation)
+- [Utilisation](#️-utilisation)
+- [Livrables](#-livrables)
 - [Auteur](#-auteur)
 
 ---
@@ -130,7 +130,7 @@ L’analyse suit les grandes étapes suivantes :
 ├── pyproject.toml         # Configuration de l'environnement & dépendances
 └── README.md
 
-Mise en place du modèle
+**Mise en place du modèle**
 
 1. Chargement et préparation
 
@@ -142,69 +142,68 @@ Mise en place du modèle
 
 2. Prétraitement
 
-Gestion des valeurs manquantes,
+- Gestion des valeurs manquantes,
 
-Encodage des variables catégorielles (One-Hot, Ordinal, …),
+- Encodage des variables catégorielles (One-Hot, Ordinal, …),
 
-Normalisation / standardisation de certaines variables,
+- Normalisation / standardisation de certaines variables,
 
-Séparation train/test.
+- Séparation train/test.
 
 3. Modélisation
 
 Plusieurs modèles de classification sont testés :
 
-Régression Logistique
+- Régression Logistique
 
-Random Forest
+- Random Forest
 
-Dummy
+- Dummy
 
-Évaluation à l’aide de :
+**Évaluation à l’aide de :**
 
-Accuracy
+- Accuracy
 
-Precision / Recall
+- Precision / Recall
 
-F1-score
+- F1-score
 
-ROC-AUC
+- ROC-AUC
 
-PR AUC
+- PR AUC
 
-Matrices de confusion et courbes ROC/PR
+- Matrices de confusion et courbes ROC/PR
 
-Le modèle final retenu est celui offrant le meilleur compromis entre performance et interprétabilité pour les RH.
+Le modèle final retenu est celui offrant **le meilleur compromis entre performance et interprétabilité** pour les RH.
 
-Interprétabilité avec SHAP
+---
+
+
+**Interprétabilité avec SHAP**
 
 L’interprétation du modèle est réalisée avec SHAP :
 
-- Importance globale des variables
+- Importance globale des variables: Quelles caractéristiques influencent le plus la probabilité de démission ?
 
-Quelles caractéristiques influencent le plus la probabilité de démission ?
+- Explication de cas individuels: Pourquoi tel employé est-il jugé “à risque” par le modèle ?
 
-- Explication de cas individuels
+- Support à la décision RH: Mettre en évidence des leviers d’action : ajustement salarial, mobilité interne, charge de travail, reconnaissance, etc.
 
-Pourquoi tel employé est-il jugé “à risque” par le modèle ?
+Ces analyses sont détaillées dans les notebooks de modélisation et illustrées par des graphiques SHAP (summary plots, force plots…)
 
-- Support à la décision RH
+---
 
-Mettre en évidence des leviers d’action : ajustement salarial, mobilité interne, charge de travail, reconnaissance, etc.
+## **Installation**
 
-Ces analyses sont détaillées dans les notebooks de modélisation et illustrées par des graphiques SHAP (summary plots, force plots…).
+**Prérequis**
 
-Installation
+- Python 3.10+
 
-Prérequis
+- git
 
-Python 3.10+
+- pip 
 
-git
-
-pip 
-
-Étapes d’installation
+### Étapes d’installation
 
 1. Cloner le dépôt 
 git clone https://github.com/veranoscience/OpenclassroomsProject.git
@@ -224,45 +223,53 @@ python -m venv .venv
 
 source .venv/bin/activate
 
-Installer les dépendances
+4. Installer les dépendances
 
 pip install .
 
-Utilisation
+---
+
+
+### Utilisation
+
 1. Lancer les notebooks
 
 Depuis la racine du projet, avec l’environnement activé :
 
 jupyter notebook
 
-Puis ouvrir par exemple :
+Puis ouvrir:
 
-notebooks/01_analyse_exploratoire.ipynb pour l’analyse exploratoire,
+- notebooks/01_analyse_exploratoire.ipynb pour l’analyse exploratoire,
 
-notebooks/02_preprocessing.ipynb pour le nettoyage & feature engineering,
+- notebooks/02_preprocessing.ipynb pour le nettoyage & feature engineering,
 
-notebooks/03_modelisation.ipynb pour la modélisation et SHAP
+- notebooks/03_modelisation.ipynb pour la modélisation et SHAP
 
-Livrables
+---
+
+### Livrables
 
 Le projet fournit :
 
-- Un fichier pyproject.toml décrivant :
+**Un fichier pyproject.toml décrivant :**
 
-la version de Python supportée,
+- la version de Python supportée,
 
-les dépendances nécessaires (pandas, scikit-learn, shap, matplotlib, etc.).
+- les dépendances nécessaires (pandas, scikit-learn, shap, matplotlib, etc.).
 
-- Des notebooks :
+**Des notebooks :**
 
-Nettoyage & préparation des données,
+- Nettoyage & préparation des données,
 
-Analyse exploratoire,
+- Analyse exploratoire,
 
-Modélisation & interprétabilité.
+- Modélisation & interprétabilité.
 
-- Un support de présentation (PDF) 
+**Un support de présentation (PDF)**
 
-Auteur
+---
+
+### Auteur
 
 Kseniia Dautel
