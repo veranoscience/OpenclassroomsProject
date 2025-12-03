@@ -2,7 +2,7 @@
 
 Bienvenue dans ce projet de **classification en Machine Learning** dont l’objectif est d’**analyser et prédire les démissions d’employés (attrition)** au sein de l’ESN _TechNova Partners_, spécialisée dans le conseil en transformation digitale et la vente de solutions SaaS.
 
-Ce dépôt contient l’ensemble du travail réalisé en tant que **Consultant Data Scientist** missionné par le département RH pour :
+Ce dépôt contient l’ensemble du travail réalisé en tant que **Consultant Data Scientist** pour :
 - comprendre les **facteurs clés** derrière les démissions,
 - construire un **modèle de prédiction de l’attrition**,
 - produire des **insights actionnables** pour les équipes RH
@@ -26,54 +26,40 @@ Ce dépôt contient l’ensemble du travail réalisé en tant que **Consultant D
 <a id="-contexte"></a>
 ## Contexte
 
-TechNova Partners constate un **taux de démission plus élevé que d’habitude**.  
+TechNova Partners constate un **taux de démission supérieur à la normale**.  
 
 Le responsable SIRH, souhaite :
-- objectiver les intuitions recueillies lors des entretiens de départ,
-- identifier les **causes racines** de l’attrition,
-- disposer d’outils pour **anticiper les risques de démission**.
+- **objectiver** les hypothèses issues des entretiens de départ,
+- **identifier** les **causes racines** de l’attrition,
+- **anticiper** les risques de démission.
 
-En parallèle, Manager Data Scientist, accompagne la démarche afin de structurer :
-- une **analyse exploratoire solide**,
-- un **pipeline de modélisation robuste**,
-- une **interprétation claire des résultats** à destination des RH.
-
-Ce projet s’inscrit donc dans un **scénario professionnel complet**, allant de la compréhension métier à la restitution de recommandations.
+Accompagnement avec un **pipeline robuste** de modélisation + **restitution claire** pour les RH.
 
 ---
+
 <a id="-objectifs"></a>
 ## Objectifs
 
-Le projet vise à :
-
-- **Analyser** les profils des employés ayant quitté l’entreprise vs ceux toujours en poste.
--  **Identifier** les facteurs associés à un risque de démission (ancienneté, salaire, satisfaction, performance, etc.).
+- **Analyser** les profils "démissionnaires vs non-démissionnaires"
+-  **Identifier** les facteurs associés au risque de démission (ancienneté, salaire, satisfaction, performance, etc.).
 - **Construire un modèle de classification** capable de prédire la probabilité de départ d’un employé.
--  **Interpréter le modèle** (via SHAP) pour expliquer les prédictions aux décideurs RH.
+-  **Interpréter le modèle** (via SHAP) (globale & locale)
 - **Fournir des livrables clairs** : notebooks, scripts, environnement reproductible et support de présentation.
 
 ---
+
 <a id="-jeux-de-données"></a>
 ##  Jeux de données
 
 Trois sources principales sont mises à disposition :
 
-1. **Extrait SIRH**  
-   - Poste, département, type de contrat  
-   - Âge, ancienneté, niveau de salaire  
-   - Variables sociodémographiques  
+1. **SIRH**: poste, département, contrat, âge, ancienneté, salaire, etc.
 
-2. **Extrait des évaluations de performance**  
-   - Notes annuelles de performance  
-   - Indicateurs de satisfaction / engagement  
-   - Historique de certaines évaluations RH
+2. **Évaluations de performance**: notes annuelles, engagement/satisfaction, historiques RH.
+3. **Sondage annuel employés**: bien-être, charge, management, équilibre vie pro/perso.  
+**Variable cible** (attrition = 1/0)
 
-3. **Extrait du sondage annuel employés**  
-   - Questions de bien-être au travail  
-   - Perception de la charge, du management, de l’équilibre vie pro/vie perso  
-   - Une **variable cible** indiquant si l’employé a quitté l’entreprise (attrition = 1/0)
-
-Ces différentes sources sont **fusionnées et préparées** pour construire un dataset exploitable pour la modélisation.
+Ces différentes sources sont **fusionnées et préparées** pour construire un dataset modélisable.
 
 ---
 <a id="-approche"></a>
@@ -119,20 +105,33 @@ L’analyse suit les grandes étapes suivantes :
 
 ```text
 .
+├── src/
+│   ├── __init__.py           
+│   ├── data_preparation.py.   # chargement & split X/y (données traitées)
+│   ├── train_model.py         # entraînement + sauvegarde artefact
+│   └── utils.py               # utilitaires (chargement modèle, prédiction unitaire)
+├── tests/
+│   ├── test_data_preparation.py
+│   └── test_predict.py
+├── models/                    # artefact modèle 
 ├── data/
-│   ├── raw/               # Fichiers bruts : SIRH, performance, sondage
-│   └── processed/         # Données nettoyées / fusionnées
+│   ├── raw/                   # fichiers brutsv(privé, ignoré) – .gitkeep 
+│   └── processed/             # données traités (visibles)
 ├── notebooks/
-│   ├── 01_analyse_exploratoire.ipynb       
+│   ├── 01_analyse_exploratoire.ipynb
 │   ├── 02_preprocessing.ipynb
 │   └── 03_modelisation.ipynb
-├── presentation/
-│   └── presentation_tecnova_attrition.pdf
-├── pyproject.toml         # Configuration de l'environnement & dépendances
-└── README.md
+├── reports           
+├── main.py                    # entraînement
+├── pyproject.toml             # configuration de l'environnement & dépendances
+├── requirements.txt.          # exporté depuis uv
+├── README.md
+├── .gitignore
+└── uv.lock                    # verrouillage précis des versions
 
 ```
 <a id="-mise-en-place-du-modèle"></a>
+
 ## Mise en place du modèle
 
 1. **Chargement et préparation**
@@ -183,15 +182,11 @@ Le modèle final retenu est celui offrant **le meilleur compromis entre performa
 <a id="-interprétabilité-avec-shap"></a>
 ## Interprétabilité avec SHAP
 
-L’interprétation du modèle est réalisée avec SHAP :
+- Importance globale des variables: Quelles caractéristiques influencent le plus la probabilité de démission ? (summary plot)
 
-- Importance globale des variables: Quelles caractéristiques influencent le plus la probabilité de démission ?
+- Explication de cas individuels: Pourquoi tel employé est-il jugé “à risque” par le modèle ? (force plot)
 
-- Explication de cas individuels: Pourquoi tel employé est-il jugé “à risque” par le modèle ?
-
-- Support à la décision RH: Mettre en évidence des leviers d’action : ajustement salarial, mobilité interne, charge de travail, reconnaissance, etc.
-
-Ces analyses sont détaillées dans les notebooks de modélisation et illustrées par des graphiques SHAP (summary plots, force plots…)
+- Aide à la décision RH: leviers d’action (ajustement salarial, mobilité interne, charge de travail, reconnaissance, etc.)
 
 ---
 <a id="-installation"></a>
@@ -203,36 +198,32 @@ Ces analyses sont détaillées dans les notebooks de modélisation et illustrée
 
 - git
 
-- pip 
+- [uv](https://github.com/astral-sh/uv)
 
 ## Étapes d’installation
 
 1. **Cloner le dépôt**
 
+```bash
 git clone https://github.com/veranoscience/OpenclassroomsProject.git
 
 cd OpenclassroomsProject
+```
 
 2. **Créer un environnement virtuel**
 
-python -m venv .venv
+```bash
+uv venv && source .venv/bin/activate
+```
 
-3. **Activer l’environnement virtuel**
+3. **Installer les dépendances**
 
-- Sur Windows :
-
-.\.venv\Scripts\activate
-
-
-- Sur macOS / Linux :
-
-source .venv/bin/activate
-
-4. **Installer les dépendances**
-
-pip install .
+```bash
+uv sync
+```
 
 ---
+
 <a id="-utilisation"></a>
 ## Utilisation
 
@@ -240,39 +231,75 @@ pip install .
 
 Depuis la racine du projet, avec l’environnement activé :
 
+```bash
 jupyter notebook
+```
 
 Puis ouvrir:
 
-- notebooks/01_analyse_exploratoire.ipynb pour l’analyse exploratoire,
+- `notebooks/01_analyse_exploratoire.ipynb` pour l’analyse exploratoire
 
-- notebooks/02_preprocessing.ipynb pour le nettoyage & feature engineering,
+- `notebooks/02_preprocessing.ipynb` pour le nettoyage & feature engineering
 
-- notebooks/03_modelisation.ipynb pour la modélisation et SHAP
+- `notebooks/03_modelisation.ipynb` pour la modélisation et SHAP
+
+Script (entrai&nement rapide)
+
+```bash
+python main.py
+```
+Un artefact est sauvegardé dans `models/model.joblib`
 
 ---
+
+## Workflow Git (branches / commits / tags)
+
+- Branche principale : `main` (protégée)
+- Conventions de branches : `<type><-resume->`
+  - Types : `feat`, `fix`, `docs`, `refactor`, `chore`, `test`, `data`
+  - Examples :  `docs/mise-a-jour-readme`
+- Commits descriptifs: `feat: ...`, `chore: ...`
+- Tags de version : `v0.1.0`, `v0.2.0`, ...
+  - Créer : `git tag -a v0.1.0 -m "v0.1.0: base"`
+  - Pousser : `git push origin v0.1.0`
+
+Résolution de conflits : utiliser l’outil intégré **VS Code**
+(Accept Current/Incoming → `git add .` → `git rebase --continue`).
+
+## Authentification & Sécurité
+
+Aucun secret n’est committé
+**Compte GitHub** : 2FA activée, Secret Scanning & Dependabot activés.
+
+---
+
 <a id="-livrables"></a>
 ## Livrables
 
 Le projet fournit :
 
-**Un fichier pyproject.toml décrivant :**
+- **Code source** (notebooks + src/ + main.py)
 
-- la version de Python supportée,
+- **Environnement reproductible** : `pyproject.toml` (uv), `uv.lock`, `requirements.txt` exporté.
 
-- les dépendances nécessaires (pandas, scikit-learn, shap, matplotlib, etc.).
+- **README** complet (installation, utilisation, sécurité, workflow)
 
-**Des notebooks :**
+- **Versioning** : historique de commits clair, branches dédiées, tags (ex. v0.1.0).
 
-- Nettoyage & préparation des données,
-
-- Analyse exploratoire,
-
-- Modélisation & interprétabilité.
-
-**Un support de présentation (PDF)**
+- **Présentation** : `reports/` (PDF)
 
 ---
+
+## Versioning / Changelog
+
+- Version courante : voir tags Git.
+
+- `CHANGELOG.md` pour tracer les évolutions :
+
+v0.1.0 — structure, dépendances, notebooks, entraînement minimal, SHAP.
+
+---
+
 <a id="-auteur"></a>
 ## Auteur
 
