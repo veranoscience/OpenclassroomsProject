@@ -1,4 +1,5 @@
 name: CI
+
 on:
   pull_request:
   push:
@@ -23,7 +24,7 @@ jobs:
           source .venv/bin/activate
           uv sync
 
-      # >>> ICI: on rend src/ importable partout
+      # ICI : on rend src importable partout
       - name: Make src importable
         run: echo "PYTHONPATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
 
