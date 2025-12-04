@@ -19,4 +19,5 @@ wheels/
 
 # Données : cacher SEULEMENT les brutes
 data/raw/*
-!data/raw/.gitkeep
+!data/raw/.gitkeepmodels/*.joblib
+models/*.pkl
