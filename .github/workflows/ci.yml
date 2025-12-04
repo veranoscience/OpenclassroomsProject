@@ -23,8 +23,9 @@ jobs:
           source .venv/bin/activate
           uv sync
 
+      # >>> ICI: on rend src/ importable partout
       - name: Make src importable
-         run: echo "PYTHONPATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+        run: echo "PYTHONPATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
 
       - name: Run tests
         run: |
