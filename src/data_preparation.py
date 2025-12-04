@@ -10,4 +10,3 @@ def split_xy(df: pd.DataFrame, target: str = "attrition", test_size: float = 0.2
      X = df.drop(columns=[target])
      y = df[target]
     return train_test_split(X, y, test_size=test_size, stratify=y, random_state=seed)
-src/train_model.py
