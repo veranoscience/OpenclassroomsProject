@@ -14,6 +14,8 @@ RUN pip install --no-cache-dir uv
 COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen
 
+ENV PATH="/app/.venv/bin:${PATH}"
+
 # Code
 COPY . .
 
@@ -22,4 +24,4 @@ ENV PORT=7860
 EXPOSE 7860
 
 USER appuser
-CMD ["bash","-lc","source .venv/bin/activate && uvicorn src.api.server:app --host 0.0.0.0 --port $PORT"]
+CMD ["sh","-lc","uvicorn src.api.server:app --host 0.0.0.0 --port ${PORT:-7860}"]
