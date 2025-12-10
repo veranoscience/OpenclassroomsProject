@@ -8,12 +8,18 @@ from .schemas import PredictRequest, EmployeeInput  # you created these
 # Seuil de décision 
 THRESHOLD = 0.33
 
-# --- Charge le pipeline (préproc + RF) ---
-MODEL_PATH = Path("models/model.joblib")
-if not MODEL_PATH.exists():
-    raise RuntimeError(f"Modèle introuvable: {MODEL_PATH}. Entraîne et sauvegarde d'abord.")
+LOCAL_MODEL = Path("models/model.joblib")
+HF_REPO_ID = "veranoscience/attrition-model"
+HF_FILENAME = "model.joblib"
 
-pipe = joblib.load(MODEL_PATH)
+def load_pipeline():
+    if LOCAL_MODEL.exists():
+        return joblib.load(LOCAL_MODEL)
+    # Téléchargement depuis le Hub (public => pas besoin de token)
+    downloaded = hf_hub_download(repo_id=HF_REPO_ID, filename=HF_FILENAME)
+    return joblib.load(downloaded)
+
+pipe = load_pipeline()
 
 app = FastAPI(
     title="Attrition API",
@@ -23,31 +29,16 @@ app = FastAPI(
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "model": str(MODEL_PATH), "threshold": THRESHOLD}
+    src = str(LOCAL_MODEL) if LOCAL_MODEL.exists() else f"hub:{HF_REPO_ID}/{HF_FILENAME}"
+    return {"status": "ok", "model_source": src, "threshold": THRESHOLD}
 
-# --- Endpoint batch: reçoit une liste d'EmployeeInput ---
 @app.post("/predict_proba")
 def predict_proba(req: PredictRequest):
-    """
-    Reçoit:
-    {
-      "inputs": [
-        {...},  # EmployeeInput
-        {...}
-      ]
-    }
-    Retourne probas et classes (selon THRESHOLD) pour chaque ligne.
-    """
     try:
-        # Convertit la liste de Pydantic en DataFrame
-        rows = [item.model_dump() for item in req.inputs]  # .dict() si pydantic v1
+        rows = [item.model_dump() for item in req.inputs]
         X = pd.DataFrame(rows)
-
-        # Probabilités (classe positive attrition=1)
         probas = pipe.predict_proba(X)[:, 1]
-        # Classes selon le seuil fixe
         preds = (probas >= THRESHOLD).astype(int)
-
         return {
             "threshold": THRESHOLD,
             "probas": [float(p) for p in probas],
@@ -55,7 +46,6 @@ def predict_proba(req: PredictRequest):
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Erreur de prédiction: {e}")
-
 
 @app.post("/predict_one")
 def predict_one(emp: EmployeeInput):
