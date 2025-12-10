@@ -19,5 +19,9 @@ wheels/
 
 # Données : cacher SEULEMENT les brutes
 data/raw/*
-!data/raw/.gitkeepmodels/*.joblib
-models/*.pkl
+!data/raw/.gitkeep
+
+# Artefacts modèles : ignorer tout sauf le modèle final
+models/*
+!models/model.joblib
+models/.ipynb_checkpoints/
