@@ -23,5 +23,5 @@ data/raw/*
 
 # Artefacts modèles : ignorer tout sauf le modèle final
 models/*
-models/.ipynb_checkpoints/
 !models/.gitkeep
+models/.ipynb_checkpoints/
