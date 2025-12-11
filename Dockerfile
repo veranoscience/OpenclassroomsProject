@@ -24,4 +24,4 @@ ENV PORT=7860
 EXPOSE 7860
 
 USER appuser
-CMD ["sh","-lc","uvicorn src.api.server:app --host 0.0.0.0 --port ${PORT:-7860}"]
+CMD ["sh","-lc","/app/.venv/bin/uvicorn src.api.server:app --host 0.0.0.0 --port ${PORT:-7860}"]
