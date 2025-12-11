@@ -2,10 +2,10 @@ from pathlib import Path
 import joblib
 import pandas as pd
 from fastapi import FastAPI, HTTPException
+from huggingface_hub import hf_hub_download
 
-from .schemas import PredictRequest, EmployeeInput  # you created these
+from .schemas import PredictRequest, EmployeeInput
 
-# Seuil de décision 
 THRESHOLD = 0.33
 
 LOCAL_MODEL = Path("models/model.joblib")
@@ -15,7 +15,6 @@ HF_FILENAME = "model.joblib"
 def load_pipeline():
     if LOCAL_MODEL.exists():
         return joblib.load(LOCAL_MODEL)
-    # Téléchargement depuis le Hub (public => pas besoin de token)
     downloaded = hf_hub_download(repo_id=HF_REPO_ID, filename=HF_FILENAME)
     return joblib.load(downloaded)
 
@@ -42,7 +41,7 @@ def predict_proba(req: PredictRequest):
         return {
             "threshold": THRESHOLD,
             "probas": [float(p) for p in probas],
-            "preds": preds.tolist()
+            "preds": preds.tolist(),
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Erreur de prédiction: {e}")
