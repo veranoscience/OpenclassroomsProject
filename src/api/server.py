@@ -55,3 +55,9 @@ def predict_one(emp: EmployeeInput):
         return {"threshold": THRESHOLD, "proba": proba, "pred": pred}
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Erreur de prédiction: {e}")
+    
+from fastapi.responses import RedirectResponse
+
+@app.get("/")
+def root():
+    return RedirectResponse(url="/docs")
