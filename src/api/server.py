@@ -87,12 +87,14 @@ def root():
     return RedirectResponse(url="/docs")
 
 @app.get("/health")
-log_prediction(
-            source="api",
-            inputs=[item.model_dump() for item in req.inputs],
-            proba=None, pred=None, threshold=THRESHOLD,
-            status="error", error_message=str(e)
-        )
+def health():
+    src = str(LOCAL_MODEL) if LOCAL_MODEL.exists() else f"hub:{HF_REPO_ID}/{HF_FILENAME}"
+    return {
+        "status": "ok",
+        "model_source": src,
+        "threshold": THRESHOLD,
+        "db_connected": bool(db_engine)
+    }
 
 @app.post("/predict_one")
 def predict_one(emp: EmployeeInput):
@@ -131,14 +133,14 @@ def predict_proba(req: PredictRequest):
     Reçoit {"inputs": [EmployeeInput, ...]} et retourne {threshold, probas[], preds[]}.
     
     """
-   try:
+    try:
         rows = [item.model_dump() for item in req.inputs]
         X = pd.DataFrame(rows)
         probas = pipe.predict_proba(X)[:, 1]
         preds  = (probas >= THRESHOLD).astype(int)
 
         # logging succès
-       log_prediction(
+        log_prediction(
             source="api",
             inputs=rows,
             proba=float(probas.mean()) if len(probas) else None,   # exemple: proba moyenne
