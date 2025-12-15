@@ -1,0 +1,60 @@
+name: CD — Deploy to Hugging Face Space
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/**'
+      - 'Dockerfile'
+      - 'pyproject.toml'
+      - 'README.md'
+      - '.github/workflows/deploy-to-hf-space.yml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout GitHub repo
+        uses: actions/checkout@v4
+
+      - name: Install git-xet (required by HF Spaces for binaries)
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y curl
+          curl --proto '=https' --tlsv1.2 -sSf \
+            https://raw.githubusercontent.com/huggingface/xet-core/refs/heads/main/git_xet/install.sh | sudo sh
+          git xet install || true
+
+      - name: Clone Space repo
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE_SLUG: ${{ secrets.HF_SPACE_SLUG }}
+        run: |
+          rm -rf space
+          git clone https://veranoscience:${HF_TOKEN}@huggingface.co/spaces/${HF_SPACE_SLUG} space
+          cd space
+          git config user.name  "github-actions"
+          git config user.email "actions@github.com"
+
+      - name: Sync project files into Space repo
+        run: |
+          rsync -av --delete \
+            --exclude '.git' \
+            --exclude '.github' \
+            ./ space/
+          
+
+      - name: Commit & push to Space
+        working-directory: space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE_SLUG: ${{ secrets.HF_SPACE_SLUG }}
+        run: |
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to deploy."
+            exit 0
+          fi
+          git commit -m "CD: deploy from GitHub $GITHUB_SHA"
+          git push origin HEAD:main

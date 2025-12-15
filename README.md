@@ -10,45 +10,41 @@ Ce dépôt contient l’ensemble du travail réalisé en tant que **Consultant D
 ## Table des Matières
 
 
-- [Contexte](#-contexte)
-- [Objectifs](#-objectifs)
+- [Contexte & objectifs](#-contexte)
 - [Jeux de données](#-jeux-de-données)
 - [Approche](#-approche)
 - [Structure du dépôt](#️-structure-du-dépôt)
 - [Mise en place du modèle](#-mise-en-place-du-modèle)
-- [Interprétabilité avec SHAP](#-interprétabilité-avec-shap)
+- [API(FastAPI)](#-api-fastapi-api)
+- [Base de donées PostgreSQL](#-base-de-données-postgresql)
 - [Installation](#️-installation)
 - [Utilisation](#️-utilisation)
+- [Workflow Git](#workflow-git-branches--commits--tags-workflow)
+- [Traçabilité des prédictions](#traçabilité-des-prédiction)
+- [Tests & Couverture (CI)](#tests--couverture-ci)
+- [Déploiement(CI/CD)](#déploiement-cd-vers-hugging-face-spaces)
+- [Déploiment HF Spaces (Docker)](#déploiement-hf-spaces-docker)
 - [Livrables](#-livrables)
 - [Auteur](#-auteur)
 
 ---
 <a id="-contexte"></a>
-## Contexte
 
-TechNova Partners constate un **taux de démission supérieur à la normale**.  
+## Contexte & objectifs
 
-Le responsable SIRH, souhaite :
-- **objectiver** les hypothèses issues des entretiens de départ,
-- **identifier** les **causes racines** de l’attrition,
-- **anticiper** les risques de démission.
+**Problème** : anticiper les départs d’employés (attrition) et expliquer les facteurs clés.
 
-Accompagnement avec un **pipeline robuste** de modélisation + **restitution claire** pour les RH.
+**Objectifs**:
 
----
-
-<a id="-objectifs"></a>
-## Objectifs
-
-- **Analyser** les profils "démissionnaires vs non-démissionnaires"
--  **Identifier** les facteurs associés au risque de démission (ancienneté, salaire, satisfaction, performance, etc.).
-- **Construire un modèle de classification** capable de prédire la probabilité de départ d’un employé.
--  **Interpréter le modèle** (via SHAP) (globale & locale)
-- **Fournir des livrables clairs** : notebooks, scripts, environnement reproductible et support de présentation.
+- Construire un **pipeline scikit-learn** (prétraitements + modèle RF)
+- Exposer une **API ** (FastAPI) avec Swagger/OpenAPI.
+- Tracer chaque prédiction (inputs/outputs) dans **PostgreSQL**
+- Mettre en place **CI** (tests) et **CD** (déploiement automatique).
 
 ---
 
 <a id="-jeux-de-données"></a>
+
 ##  Jeux de données
 
 Trois sources principales sont mises à disposition :
@@ -61,46 +57,29 @@ Trois sources principales sont mises à disposition :
 
 Ces différentes sources sont **fusionnées et préparées** pour construire un dataset modélisable.
 
+Fichier aligné pour l’inférence : `data/processed/df_central_norm.csv`
+(contient le **feature engineering** attendu par le pipeline et les schémas SQL).
+
 ---
 <a id="-approche"></a>
+
 ## Approche
 
-L’analyse suit les grandes étapes suivantes :
+- **Préparation** : encodages catégoriels, normalisation, features (`exp_moins_3_years`, etc.).
 
-1. **Compréhension métier & des données**
-   - Lecture des descriptions,
-   - Mapping des variables,
-   - Identification de la cible.
+- **Modèle** : `RandomForestClassifier` dans un Pipeline scikit-learn.
 
-2. **Nettoyage & préparation**
-   - Gestion des valeurs manquantes,
-   - Encodage des variables catégorielles,
-   - Transformation / normalisation des variables numériques,
-   - Jointure des différentes sources de données.
+- **API** : FastAPI + endpoints `predict_one` et `predict_proba`.
 
-3. **Analyse Exploratoire (EDA)**
-   - Statistiques descriptives générales,
-   - Comparaisons _démissionnaires_ vs _non-démissionnaires_,
-   - Visualisation des distributions et corrélations,
-   - Identification de pistes d’explication à tester dans le modèle.
+- **Traçabilité** : table `ml.predictions_log` (inputs/outputs/threshold).
 
-4. **Modélisation**
-   - Séparation train/test,
-   - Entraînement de plusieurs modèles de classification (Dummy, Logistic Regression, Random Forest),
-   - Recherche d’hyperparamètres,
-   - Évaluation via des métriques adaptées (PR AUC, ROC-AUC, AUC, Précision, Rappel, F1-score, Seuil de décision )
+- **Déploiement** : Docker → Hugging Face Spaces (CD GitHub Actions).
 
-5. **Interprétabilité**
-   - Utilisation de **SHAP** pour comprendre l’impact des variables,
-   - Analyse globale (features les plus importantes),
-   - Analyse locale (explication de cas particuliers).
-
-6. **Restitution**
-   - Synthèse des résultats pour les RH,
-   - Recommandations opérationnelles et pistes d’actions.
+- **Qualité** : Pytest + couverture, règles de branche et PR.
 
 ---
 <a id="-structure-du-dépôt"></a>
+
 ## Structure du dépôt
 
 ```text
@@ -117,80 +96,111 @@ L’analyse suit les grandes étapes suivantes :
 ├── data/
 │   ├── raw/                   # fichiers brutsv(privé, ignoré) – .gitkeep 
 │   └── processed/             # données traités (visibles)
+├── db/
+│   ├── attrition_local.session.sql    # schémas hr_staging/hr/ml + indexes + logs
+│   ├── create_db.py                   # création table + exemple
+│   └── load_csv.py                    # chargement CSV → hr.employees
 ├── notebooks/
 │   ├── 01_analyse_exploratoire.ipynb
 │   ├── 02_preprocessing.ipynb
 │   └── 03_modelisation.ipynb
-├── reports           
+├── .github/workflows/
+│   ├── ci.yml
+│   └── deploy-to-hf-space.yml          
 ├── main.py                    # entraînement
 ├── pyproject.toml             # configuration de l'environnement & dépendances
 ├── requirements.txt.          # exporté depuis uv
 ├── README.md
 ├── .gitignore
-└── uv.lock                    # verrouillage précis des versions
+└── uv.lock
+├── Dockerfile                    # verrouillage précis des versions
 
 ```
 <a id="-mise-en-place-du-modèle"></a>
 
 ## Mise en place du modèle
 
-1. **Chargement et préparation**
+- **Entraînement** : notebooks 01_analyse_exploratoire.ipynb, 02_preprocessing.ipynb et 03_modelisation.ipynb.
 
-- Import des trois extraits (SIRH, performance, sondage),
+- **Artefact modèle** : `model.joblib` (hébergé sur Hugging Face Hub, téléchargé à l’inférence).
 
-- Jointure sur l’identifiant employé,
+- **Chargement côté API** : si `models/model.joblib` est absent, l’API télécharge depuis `veranoscience/attrition-model`.
 
-- Construction de la variable cible (attrition).
-
-2. **Prétraitement**
-
-- Gestion des valeurs manquantes,
-
-- Encodage des variables catégorielles (One-Hot, Ordinal, …),
-
-- Normalisation / standardisation de certaines variables,
-
-- Séparation train/test.
-
-3. **Modélisation**
-
-Plusieurs modèles de classification sont testés :
-
-- Régression Logistique
-
-- Random Forest
-
-- Dummy
-
-**Évaluation à l’aide de :**
-
-- Accuracy
-
-- Precision / Recall
-
-- F1-score
-
-- ROC-AUC
-
-- PR AUC
-
-- Matrices de confusion et courbes ROC/PR
-
-Le modèle final retenu est celui offrant **le meilleur compromis entre performance et interprétabilité** pour les RH.
+- **Seuil** : `THRESHOLD=0.33` → `pred` = (proba >= 0.33)`.
 
 ---
-<a id="-interprétabilité-avec-shap"></a>
-## Interprétabilité avec SHAP
 
-- Importance globale des variables: Quelles caractéristiques influencent le plus la probabilité de démission ? (summary plot)
+<a id="-api-fastapi"></a>
 
-- Explication de cas individuels: Pourquoi tel employé est-il jugé “à risque” par le modèle ? (force plot)
+## API (FastAPI)
 
-- Aide à la décision RH: leviers d’action (ajustement salarial, mobilité interne, charge de travail, reconnaissance, etc.)
+- **Doc Swagger** : `/docs`
+
+- **Endpoints principaux** :
+
+`GET /health` → statut, source du modèle (local ou hub), threshold.
+
+`POST /predict_one` → prédiction unitaire (retourne proba et pred).
+
+`POST /predict_proba` → prédictions batch (retourne listes probas et preds).
+
+Exemple :
+
+```bash
+curl -s -X POST http://127.0.0.1:8000/predict_one \
+  -H "Content-Type: application/json" \
+  -d '{
+    "age":41, "genre":"F", "revenu_mensuel":6000, "statut_marital":"Célibataire",
+    "departement":"Consulting", "poste":"Consultant",
+    "nombre_experiences_precedentes":6, "annees_dans_le_poste_actuel":2,
+    "note_evaluation_precedente":3, "note_evaluation_actuelle":3,
+    "heure_supplementaires":0, "augementation_salaire_precedente":12,
+    "nombre_participation_pee":1, "nb_formations_suivies":2,
+    "distance_domicile_travail":5, "niveau_education":2,
+    "annees_depuis_la_derniere_promotion":1, "annes_sous_responsable_actuel":2,
+    "satisfaction_globale":3.0, "exp_moins_3_years":0,
+    "domaine_etude":"Infra & Cloud", "frequence_deplacement":"Occasionnel"
+  }'
+# → {"threshold":0.33,"proba":0.1443,"pred":0}
+
+```
+---
+
+<a id="-base-de-données-postgresql"></a>
+
+## Base de données PostgreSQL
+
+**Objectif** : assurer une traçabilité complète des échanges API ↔ modèle.
+
+- Schémas :
+
+`hr_staging` : réception brute (employees_raw).
+
+`hr` : table typée finale (employees) + index.
+
+`ml` : table de log des inférences (predictions_log) + index.
+
+- Scripts :
+
+`db/attrition_local.session.sql` → crée schémas/tables/index.
+
+`db/load_csv.py` → charge `data/processed/df_central_norm.csv` dans hr.employees.
+
+`db/create_db.py` → exemple alternatif (table simple predictions + insertion d’une ligne).
+
+Activation du logging DB côté API (local) :
+
+```bash
+export DATABASE_URL="postgresql+psycopg2://appuser:appuser@localhost:5432/attrition"
+uvicorn src.api.server:app --reload
+# Chaque appel /predict_* crée une ligne dans ml.predictions_log
+
+```
 
 ---
 <a id="-installation"></a>
-## Installation
+
+## Installation locale
 
 **Prérequis**
 
@@ -200,31 +210,28 @@ Le modèle final retenu est celui offrant **le meilleur compromis entre performa
 
 - [uv](https://github.com/astral-sh/uv)
 
-## Étapes d’installation
+- PostgreSQL 15 local
 
-1. **Cloner le dépôt**
+(macOS : `brew install postgresql@15`)
 
-```bash
-git clone https://github.com/veranoscience/OpenclassroomsProject.git
-
-cd OpenclassroomsProject
-```
-
-2. **Créer un environnement virtuel**
+## Setup Python
 
 ```bash
 uv venv && source .venv/bin/activate
+uv sync
 ```
 
-3. **Installer les dépendances**
+## Démarrer l'API
 
 ```bash
-uv sync
+uvicorn src.api.server:app --reload
+# Swagger: http://127.0.0.1:8000/docs
 ```
 
 ---
 
 <a id="-utilisation"></a>
+
 ## Utilisation
 
 1. Lancer les notebooks
@@ -250,7 +257,21 @@ python main.py
 ```
 Un artefact est sauvegardé dans `models/model.joblib`
 
+Healthcheck
+```bash
+curl -s http://127.0.0.1:8000/health | jq
+```
+
+Batch
+
+```bash
+curl -s -X POST http://127.0.0.1:8000/predict_proba \
+  -H "Content-Type: application/json" \
+  -d '{"inputs":[{ ... les mêmes champs que /predict_one ... }]}'
+```
+
 ---
+<a id="-workflow"></a>
 
 ## Workflow Git (branches / commits / tags)
 
@@ -266,41 +287,116 @@ Un artefact est sauvegardé dans `models/model.joblib`
 Résolution de conflits : utiliser l’outil intégré **VS Code**
 (Accept Current/Incoming → `git add .` → `git rebase --continue`).
 
-## Authentification & Sécurité
+---
 
-Aucun secret n’est committé
-**Compte GitHub** : 2FA activée, Secret Scanning & Dependabot activés.
+<a id="-tracabilité"></a>
+
+## Traçabilité des prédictions
+
+Activation : définir la variable d’env. `DATABASE_URL` avant de lancer l’API.
+
+```bash
+export DATABASE_URL="postgresql+psycopg2://appuser:appuser@localhost:5432/attrition"
+uvicorn src.api.server:app --reload
+```
+À chaque appel réussi : insertion dans `ml.predictions_log` (date, payload, proba, classe, seuil, statut).
+
+Requête de contrôle :
+
+```sql
+SELECT created_at, proba, pred, threshold, status
+FROM ml.predictions_log
+ORDER BY created_at DESC
+LIMIT 5;
+```
+---
+
+<a id="-tests--couverture-ci"></a>
+
+### Tests & Couverture (CI)
+
+Lancer localement :
+
+```bash
+uv run pytest
+# avec couverture:
+uv run pytest --cov=src --cov-report=term-missing
+```
+
+CI GitHub Actions (`.github/workflows/ci.yml`) :
+
+- installe l’environnement,
+
+- exécute Pytest,
+
+- calcule la couverture,
+
+- bloque la PR si la CI échoue.
+
+---
+<a id="-déploiement-cd-vers-hugging-face-spaces"></a>
+
+## Déploiement (CD) vers Hugging Face Spaces
+
+- **Dockerfile** à la racine.
+
+- Workflow `deploy-to-hf-space.yml` :
+
+   - clone le repo du Space,
+
+   - copie `Dockerfile`, `pyproject.toml`, `src/, db/, README.md`, etc.,
+
+   - push vers le Space → rebuild automatique → API en ligne.
+
+Secrets requis (GitHub → Settings → Secrets and variables → Actions) :
+
+- `HF_TOKEN` : token Hugging Face (scope write).
+
+- `HF_SPACE_SLUG` : slug owner/SpaceName (ex. veranoscience/OpenClassroomsProject).
+
+Cycle CD :
+
+1. Crée une branche → commit → PR.
+
+2. Merge vers `main`.
+
+3. L’Action CD se lance et déploie sur le Space.
+
+<a id="-docker"></a>
+
+## Déploiement HF Spaces (Docker)
+
+- Dockerfile à la racine. Le Space utilise `sdk: docker`.
+
+Port par défaut `7860`. L’API est servie par Uvicorn.
+
+Modèle téléchargé au démarrage si absent localement.
 
 ---
 
 <a id="-livrables"></a>
+
 ## Livrables
 
 Le projet fournit :
 
-- **Code source** (notebooks + src/ + main.py)
+1. Dépôt Git structuré : code source, `pyproject.toml`, historique (branches/PR/tags), README.
 
-- **Environnement reproductible** : `pyproject.toml` (uv), `uv.lock`, `requirements.txt` exporté.
+2. API FastAPI fonctionnelle, documentée (Swagger), déployée (Docker + HF Spaces).
 
-- **README** complet (installation, utilisation, sécurité, workflow)
+3. Tests Pytest + rapport de couverture (via CI).
 
-- **Versioning** : historique de commits clair, branches dédiées, tags (ex. v0.1.0).
+4. Base PostgreSQL : schémas SQL, scripts de création/chargement, logs d’inférence.
 
-- **Présentation** : `reports/` (PDF)
+5. CI/CD : GitHub Actions (CI PR & CD déploiement auto).
 
 ---
 
-## Versioning / Changelog
-
-- Version courante : voir tags Git.
-
-- `CHANGELOG.md` pour tracer les évolutions :
-
-v0.1.0 — structure, dépendances, notebooks, entraînement minimal, SHAP.
 
 ---
 
 <a id="-auteur"></a>
+
 ## Auteur
 
-Kseniia Dautel
+Projet pédagogique - Ksenia Dautel
